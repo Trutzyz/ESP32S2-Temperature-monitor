@@ -7,8 +7,8 @@
 #define BUTTON_QTY 1
 
 // Configuração Wi-Fi
-const char* ssid = "SEU_SSID";
-const char* password = "SUA_SENHA";
+const char* ssid = "tron";
+const char* password = "12345678";
 
 // Configuração do broker MQTT (IP da sua Raspberry Pi)
 const char* mqtt_server = "192.168.1.100";
@@ -84,10 +84,10 @@ void setup()
     analogSetAttenuation(ADC_11db);
 
     // Conectando no Wi-Fi
-    //setup_wifi();
+    setup_wifi();
 
     // Configurando servidor MQTT
-    //client.setServer(mqtt_server, 1883);
+    client.setServer(mqtt_server, 1883);
 
     // Espera o usuario precionar o botão para iniciar a aplicação.
     Serial.println("Precione o botão para continuar!");
@@ -100,9 +100,9 @@ void setup()
 
 void loop()
 {
-    //if (!client.connected())
-        //reconnect();
-    //client.loop();
+    if (!client.connected())
+        reconnect();
+    client.loop();
     adcValue = analogRead(lm35Pin);
     voltage = adcValue * (3.3 / 4095.0);
     temperatureC = voltage * 100.0;
@@ -114,14 +114,14 @@ void loop()
     // Publica a temperatura no tópico "sensor/temperatura"
     char tempString[8];
     dtostrf(temperatureC, 1, 2, tempString);
-    //client.publish("sensor/temperatura", tempString);
+    client.publish("sensor/temperatura", tempString);
 
     if(temperatureC > 50)
     {
         Serial.println("             ATENCAO!");
         Serial.println("TEMPERATURA ACIMA DOS NIVEIS NORMAIS!");
         digitalWrite(ledOutput, HIGH);
-        //client.publish("sensor/alerta", "ALERTA: Temperatura Alta!");
+        client.publish("sensor/alerta", "ALERTA: Temperatura Alta!");
     }
     else
         digitalWrite(ledOutput, LOW);
