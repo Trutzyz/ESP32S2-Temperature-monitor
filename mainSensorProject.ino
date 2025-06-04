@@ -6,14 +6,15 @@
 #define lm35Pin  5
 #define BUTTON_QTY 1
 
-// Configuração Wi-Fi
+// Configuração Wi-Fi (Utilizar rede movel)
 const char* ssid = "tron";
 const char* password = "12345678";
 
-// Configuração do broker MQTT (IP da sua Raspberry Pi)
-const char* mqtt_server = "192.168.1.100";
+// Configuração do broker MQTT
+const char* mqtt_server = "192.168.88.146";
 
 byte buttonPin[BUTTON_QTY] = {42};
+byte timeOutCount = 0;
 
 unsigned long previousDebounceTimeButtonHIGH[BUTTON_QTY];
 unsigned long previousDebounceTimeButtonLOW[BUTTON_QTY];
@@ -36,7 +37,8 @@ void setup_wifi()
 
     WiFi.begin(ssid, password);
 
-    while (WiFi.status() != WL_CONNECTED) {
+    while (WiFi.status() != WL_CONNECTED) 
+    {
         delay(500);
         Serial.print(".");
     }
@@ -50,15 +52,17 @@ void setup_wifi()
 // Função de reconexão MQTT
 void reconnect()
 {
-    while (!client.connected()) {
+    while (!client.connected() && timeOutCount < 5) 
+    {
         Serial.print("Tentando conexão MQTT...");
-        if (client.connect("ESP32Client")) {
+        if (client.connect("ESP32Client")) 
             Serial.println("conectado!");
-            // client.subscribe("topico/teste"); // Se quiser escutar algo
-        } else {
+        else 
+        {
             Serial.print("falhou, rc=");
             Serial.print(client.state());
             Serial.println(" tentando novamente em 5 segundos.");
+            timeOutCount++;
             delay(5000);
         }
     }
@@ -100,9 +104,17 @@ void setup()
 
 void loop()
 {
-    if (!client.connected())
+    if (!client.connected() && timeOutCount <= 5)
         reconnect();
+    
+    if(checkButton(okButton))
+    {
+        Serial.println("Tentando reconectar ao broker!");
+        reconnect();
+    }
+
     client.loop();
+
     adcValue = analogRead(lm35Pin);
     voltage = adcValue * (3.3 / 4095.0);
     temperatureC = voltage * 100.0;
@@ -116,13 +128,15 @@ void loop()
     dtostrf(temperatureC, 1, 2, tempString);
     client.publish("sensor/temperatura", tempString);
 
-    if(temperatureC > 50)
+    if(temperatureC > 40)
     {
         Serial.println("             ATENCAO!");
         Serial.println("TEMPERATURA ACIMA DOS NIVEIS NORMAIS!");
         digitalWrite(ledOutput, HIGH);
-        client.publish("sensor/alerta", "ALERTA: Temperatura Alta!");
+        client.publish("sensor/alerta", "ALERTA: TEMPERATURA ACIMA DOS NIVEIS NORMAIS!");
+        delay(1000);
     }
     else
         digitalWrite(ledOutput, LOW);
+    delay(1000);
 }
