@@ -15,7 +15,7 @@ Este projeto utiliza uma **placa ESP32-S2** conectada a um **sensor de temperatu
 
 Abaixo está o layout da montagem na protoboard:
 
-![Esquema da protoboard](esp32-s2.png)
+![Esquema da protoboard](images/esp32-s2.png)
 
 ### Conexões principais:
 
