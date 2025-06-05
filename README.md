@@ -22,14 +22,14 @@ Abaixo está o layout da montagem na protoboard:
 - **LM35DZ:**
   - VCC → 3.3V da ESP32-S2
   - GND → GND da ESP32-S2
-  - OUT → Pino ADC (ex: GPIO1)
+  - OUT → Pino ADC 
 
 - **LED:**
-  - Ânodo (positivo) → GPIO4 (via resistor de 220Ω)
+  - Ânodo (positivo) → GPIO13 (via resistor de 220Ω)
   - Cátodo → GND
 
 - **Botão:**
-  - Um lado → GPIO5
+  - Um lado → GPIO42
   - Outro lado → GND (com resistor de 10kΩ pull-down)
 
 ## 🧠 Código
@@ -37,14 +37,14 @@ Abaixo está o layout da montagem na protoboard:
 O projeto está dividido em dois arquivos:
 
 - `mainSensorProject.ino`: Lógica principal do programa, leitura de temperatura, controle de LED, envio MQTT.
-- `generalFunctions.ino`: Funções auxiliares reutilizáveis (como configuração de Wi-Fi e MQTT).
+- `generalFunctions.ino`: Funções auxiliares reutilizáveis (como o debounce do botão).
 
 ## ⚙️ Funcionalidades
 
 - Leitura contínua da temperatura ambiente com o sensor LM35DZ.
 - Publicação dos dados no **broker MQTT** configurado.
-- LED é acionado caso a temperatura ultrapasse o valor limite.
-- Botão físico pode ser usado para desligar o LED ou resetar a lógica.
+- LED é acionado caso a temperatura ultrapasse o valor determinado.
+- Botão físico pode ser usado para iniciar a leitura depois do setup inicial.
 - Comunicação leve e eficiente via protocolo **MQTT**.
 
 ## 📦 Bibliotecas Necessárias
@@ -62,7 +62,6 @@ No código, configure os seguintes parâmetros:
 const char* ssid = "SEU_WIFI";
 const char* password = "SENHA_WIFI";
 const char* mqtt_server = "BROKER_IP";
-const int mqtt_port = 1883;
 ```
 
 ## ✅ Objetivo do Projeto
