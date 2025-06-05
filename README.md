@@ -49,7 +49,7 @@ O projeto está dividido em dois arquivos:
 
 ## 📦 Bibliotecas Necessárias
 
-Certifique-se de instalar as seguintes bibliotecas no Arduino IDE:
+Certifique-se de instalar as seguintes bibliotecas:
 
 - `WiFi.h`
 - `PubSubClient.h`
@@ -68,4 +68,4 @@ const char* mqtt_server = "BROKER_IP";
 
 - Aplicar conceitos de Internet das Coisas (IoT) com microcontroladores.
 - Monitorar remotamente a temperatura ambiente.
-- Utilizar comunicação MQTT para integração com um sistema central (ex: Raspberry Pi).
+- Utilizar comunicação MQTT para integração com um sistema central (ex: Raspberry Pi, ou computadores pessoais tradicionais).
