@@ -19,9 +19,12 @@ byte timeOutCount = 0;
 unsigned long previousDebounceTimeButtonHIGH[BUTTON_QTY];
 unsigned long previousDebounceTimeButtonLOW[BUTTON_QTY];
 
+int cycles;
 int adcValue;
 float voltage;
 float temperatureC;
+float temperatureMean;
+char tempString[8];
 
 // Cliente Wi-Fi e MQTT
 WiFiClient espClient;
@@ -73,6 +76,8 @@ void setup()
     // Iniciando a inpresão serial
     Serial.begin(115200);
     Serial.println("Iniciando o Setup!");
+
+    Serial.println("SERVIDOR BROKER EM: " + String(mqtt_server));
     
     // Inicializando os pinos de input
     pinMode(buttonPin[okButton], INPUT_PULLUP);
@@ -93,6 +98,9 @@ void setup()
     // Configurando servidor MQTT
     client.setServer(mqtt_server, 1883);
 
+    cycles = 0;
+    temperatureMean = 0.0;
+    
     // Espera o usuario precionar o botão para iniciar a aplicação.
     Serial.println("Precione o botão para continuar!");
     digitalWrite(ledOutput, HIGH);
@@ -119,24 +127,33 @@ void loop()
     voltage = adcValue * (3.3 / 4095.0);
     temperatureC = voltage * 100.0;
 
-    Serial.print("Temperature: ");
     Serial.print(temperatureC);
-    Serial.println(" °C");
 
-    // Publica a temperatura no tópico "sensor/temperatura"
-    char tempString[8];
-    dtostrf(temperatureC, 1, 2, tempString);
-    client.publish("sensor/temperatura", tempString);
-
-    if(temperatureC > 40)
+    if(cycles >= 1000)
     {
-        Serial.println("             ATENCAO!");
-        Serial.println("TEMPERATURA ACIMA DOS NIVEIS NORMAIS!");
-        digitalWrite(ledOutput, HIGH);
-        client.publish("sensor/alerta", "ALERTA: TEMPERATURA ACIMA DOS NIVEIS NORMAIS!");
-        delay(1000);
+        Serial.print("Temperature: ");
+        Serial.println(" °C");
+        temperatureMean = temperatureMean / cycles;
+        // Publica a temperatura no tópico "sensor/temperatura"
+        dtostrf(temperatureMean, 1, 2, tempString);
+        client.publish("sensor/temperatura", tempString);
+
+        if(temperatureMean > 34)
+        {
+            Serial.println("             ATENCAO!");
+            Serial.println("TEMPERATURA ACIMA DOS NIVEIS NORMAIS!");
+            digitalWrite(ledOutput, HIGH);
+            client.publish("sensor/alerta", "ALERTA: TEMPERATURA ACIMA DOS NIVEIS NORMAIS!");
+            delay(1000);
+        }
+        else
+            digitalWrite(ledOutput, LOW);
+        cycles = 0;
     }
     else
-        digitalWrite(ledOutput, LOW);
-    delay(1000);
+    {
+        temperatureMean = temperatureMean + temperatureC;
+        cycles++;
+    }
+
 }
