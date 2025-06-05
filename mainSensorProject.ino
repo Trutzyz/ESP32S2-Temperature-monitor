@@ -105,6 +105,7 @@ void setup()
     Serial.println("Precione o botão para continuar!");
     digitalWrite(ledOutput, HIGH);
     while(checkButton(okButton));
+    while(!checkButton(okButton));
     digitalWrite(ledOutput, LOW);
 
     Serial.println("Finalizando o Setup!");
@@ -115,10 +116,12 @@ void loop()
     if (!client.connected() && timeOutCount <= 5)
         reconnect();
     
-    if(checkButton(okButton))
+    if(!checkButton(okButton))
     {
         Serial.println("Tentando reconectar ao broker!");
+        setup_wifi();
         reconnect();
+        while(!checkButton(okButton));
     }
 
     client.loop();
@@ -127,13 +130,13 @@ void loop()
     voltage = adcValue * (3.3 / 4095.0);
     temperatureC = voltage * 100.0;
 
-    Serial.print(temperatureC);
-
     if(cycles >= 1000)
     {
         Serial.print("Temperature: ");
+        Serial.print(temperatureC);
         Serial.println(" °C");
         temperatureMean = temperatureMean / cycles;
+        
         // Publica a temperatura no tópico "sensor/temperatura"
         dtostrf(temperatureMean, 1, 2, tempString);
         client.publish("sensor/temperatura", tempString);
@@ -148,6 +151,7 @@ void loop()
         }
         else
             digitalWrite(ledOutput, LOW);
+        temperatureMean = 0.0;
         cycles = 0;
     }
     else
