@@ -21,10 +21,12 @@ unsigned long previousDebounceTimeButtonLOW[BUTTON_QTY];
 
 int cycles;
 int adcValue;
+unsigned long resetFlag = 0;
 float voltage;
 float temperatureC;
 float temperatureMean;
 char tempString[8];
+bool flag;
 
 // Cliente Wi-Fi e MQTT
 WiFiClient espClient;
@@ -141,15 +143,17 @@ void loop()
         dtostrf(temperatureMean, 1, 2, tempString);
         client.publish("sensor/temperatura", tempString);
 
-        if(temperatureMean > 34)
+        if(temperatureMean > 34 && !flag)
         {
             Serial.println("             ATENCAO!");
             Serial.println("TEMPERATURA ACIMA DOS NIVEIS NORMAIS!");
             digitalWrite(ledOutput, HIGH);
             client.publish("sensor/alerta", "ALERTA: TEMPERATURA ACIMA DOS NIVEIS NORMAIS!");
+            flag = true;
             delay(1000);
+            resetFlag = millis();
         }
-        else
+        else if(temperatureMean <= 34)
             digitalWrite(ledOutput, LOW);
         temperatureMean = 0.0;
         cycles = 0;
@@ -158,6 +162,12 @@ void loop()
     {
         temperatureMean = temperatureMean + temperatureC;
         cycles++;
+        resetFlag++;
     }
 
+    if(resetFlag - millis() >= 60000 && flag)
+    {
+        resetFlag = millis();
+        flag = false;
+    }
 }
